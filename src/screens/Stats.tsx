@@ -48,7 +48,7 @@ export default function Stats() {
           <TrendingUp size={20} className="text-green-500" />
           Statistics
         </h1>
-        <p className="text-xs text-neutral-600 mt-1">Your progress at a glance</p>
+        <p className="text-xs text-neutral-500 mt-1">Your progress at a glance</p>
       </div>
 
       {/* Today's Summary */}

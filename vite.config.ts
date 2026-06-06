@@ -17,8 +17,6 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: [
-        "icons/icon-192x192.png",
-        "icons/icon-512x512.png",
       ],
       manifest: {
         name: "Momentum — Habit & Study Tracker",
@@ -52,11 +50,27 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Precache everything including webmanifest
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webmanifest}"],
+
+        // When user navigates to any URL offline, serve index.html from cache
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js/],
+        
+        maximumFileSizeToCacheInBytes: 5000000,
+        
+        // Activate new SW immediately without waiting
+        skipWaiting: true,
+        clientsClaim: true,
+
+        // Cleanup old caches
+        cleanupOutdatedCaches: true,
+
         runtimeCaching: [
+          // Google Fonts CSS
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "google-fonts-cache",
               expiration: {
@@ -68,6 +82,7 @@ export default defineConfig({
               },
             },
           },
+          
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: "CacheFirst",

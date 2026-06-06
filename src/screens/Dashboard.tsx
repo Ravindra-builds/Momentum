@@ -99,7 +99,7 @@ export default function Dashboard() {
         <p className="text-neutral-300 text-base font-medium">
           {getGreeting()}{settings.userName ? `, ${settings.userName}` : ''} 👋
         </p>
-        <p className="text-neutral-600 text-xs mt-0.5">{formatFullDate(today)}</p>
+        <p className="text-neutral-500 text-xs mt-0.5">{formatFullDate(today)}</p>
       </div>
 
       {/* Main Study Card */}
@@ -146,7 +146,7 @@ export default function Dashboard() {
                 className={`btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   showResetConfirm
                     ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                    : 'bg-neutral-800/50 text-neutral-600 border border-transparent hover:text-neutral-400 hover:border-neutral-700'
+                    : 'bg-neutral-800/50 text-neutral-500 border border-transparent hover:text-neutral-400 hover:border-neutral-700'
                 }`}
               >
                 <RotateCcw size={12} />
@@ -210,8 +210,8 @@ export default function Dashboard() {
       </div>
 
       {/* Motivational Quote */}
-      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-4 mb-4">
-        <p className="text-xs text-neutral-500 italic leading-relaxed">
+      <div className="bg-gradient-to-br from-green-500/[0.08] to-transparent border border-green-500/10 rounded-xl p-4 mb-4">
+        <p className="text-xs text-neutral-400 italic leading-relaxed">
           "{quote}"
         </p>
       </div>

@@ -23,8 +23,39 @@ const SCREEN_MAP: Record<Screen, React.FC> = {
 
 type SlideDir = 'left' | 'right' | 'fade';
 
+const NOTIFICATION_STORAGE_KEY = 'momentum_last_notification_date';
+
+function startNotificationScheduler(settings: { reminderEnabled: boolean; reminderTime: string }) {
+  if (!settings.reminderEnabled) return;
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  const interval = setInterval(() => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${hh}:${mm}`;
+    const today = now.toISOString().split('T')[0];
+    const lastFired = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    if (lastFired === today) return;
+    if (currentTime === settings.reminderTime) {
+      try {
+        new Notification('Momentum', {
+          body: "Protect your streak 🔥" /* random msg */,
+          icon: './icons/icon-192x192.png',
+          badge: './icons/icon-192x192.png',
+          tag: 'momentum-daily-reminder',
+        });
+        localStorage.setItem(NOTIFICATION_STORAGE_KEY, today);
+      } catch { }
+    }
+  }, 30_000);
+  return interval;
+}
+
 function AppContent() {
-  const { screen, setScreen } = useApp();
+  const { screen, setScreen, settings } = useApp();
   const [slideDir, setSlideDir] = useState<SlideDir>('fade');
 
   // ── Touch swipe handling ──
@@ -32,6 +63,14 @@ function AppContent() {
   const touchStartY = useRef(0);
   const isSwiping = useRef(false);
   const mainRef = useRef<HTMLElement>(null);
+
+  // ── Start notification scheduler ──
+  useEffect(() => {
+    const handle = startNotificationScheduler(settings);
+    return () => {
+      if (handle) clearInterval(handle);
+    };
+  }, [settings.reminderEnabled, settings.reminderTime]);
 
   // Navigate with slide direction
   const navigateTo = useCallback((next: Screen) => {
@@ -64,6 +103,7 @@ function AppContent() {
     });
     return () => cancelAnimationFrame(raf);
   }, []);
+  
 
   // Touch handlers
   const onTouchStart = useCallback((e: React.TouchEvent) => {

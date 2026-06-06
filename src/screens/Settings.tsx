@@ -1,10 +1,15 @@
-import { useState } from 'react';
-import { ArrowLeft, Bell, User, Trash2, Shield, Heart, Info } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ArrowLeft, Bell, User, Trash2, Shield, Heart, Info, Download, Upload, AlertCircle } from 'lucide-react';
 import { useApp } from '../hooks/useAppData';
+import { storage } from '../services/storage';
 
 export default function Settings() {
   const { settings, updateSettings, setScreen } = useApp();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'confirm' | 'success' | 'error'>('idle');
+  const [importError, setImportError] = useState('');
+  const [pendingImportData, setPendingImportData] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleNotificationToggle = async () => {
     if (!settings.reminderEnabled) {
@@ -42,11 +47,77 @@ export default function Settings() {
         "Show up every day. 💪",
       ];
       const msg = messages[Math.floor(Math.random() * messages.length)];
-      new Notification('Momentum', {
-        body: msg,
-        icon: '⚡',
-      });
+      try {
+        new Notification('Momentum', {
+          body: msg,
+          icon: './icons/icon-192x192.png',
+          badge: './icons/icon-192x192.png',
+          tag: 'momentum-test',
+        });
+      } catch {
+        alert('Notification failed. Your browser may not support this feature.');
+      }
     }
+  };
+
+  // ── Backup Export ──
+  const handleExport = () => {
+    try {
+      const json = storage.exportBackup();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `momentum-backup-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to export backup.');
+    }
+  };
+
+  // ── Backup Import ──
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      setPendingImportData(text);
+      setImportStatus('confirm');
+      setImportError('');
+    };
+    reader.onerror = () => {
+      setImportError('Failed to read file.');
+      setImportStatus('error');
+    };
+    reader.readAsText(file);
+
+    // Reset file input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  const confirmImport = () => {
+    const result = storage.importBackup(pendingImportData);
+    if (result.ok) {
+      setImportStatus('success');
+      setPendingImportData('');
+      // Reload after short delay so user sees the success message
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      setImportError(result.error);
+      setImportStatus('error');
+    }
+  };
+
+  const cancelImport = () => {
+    setImportStatus('idle');
+    setPendingImportData('');
+    setImportError('');
   };
 
   return (
@@ -136,14 +207,91 @@ export default function Settings() {
         )}
       </div>
 
+      {/* ── Backup & Restore ── */}
+      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-4 mb-4 card-hover">
+        <div className="flex items-center gap-2 mb-3">
+          <Shield size={14} className="text-green-500" />
+          <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Backup & Restore</h2>
+        </div>
+        <p className="text-[11px] text-neutral-600 mb-4">
+          Export your data to a file for safekeeping. Import to restore from a backup.
+        </p>
+
+        {/* Import success message */}
+        {importStatus === 'success' && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400 flex items-center gap-2 animate-fade-in">
+            <span>✓</span> Backup restored! Reloading...
+          </div>
+        )}
+
+        {/* Import error message */}
+        {importStatus === 'error' && importError && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center gap-2 animate-fade-in">
+            <AlertCircle size={12} /> {importError}
+          </div>
+        )}
+
+        {/* Import confirmation */}
+        {importStatus === 'confirm' && (
+          <div className="mb-3 px-3 py-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 animate-fade-in">
+            <p className="text-xs text-yellow-400 font-medium mb-2 flex items-center gap-1.5">
+              <AlertCircle size={12} /> This will replace your current data
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmImport}
+                className="btn-press flex-1 py-2 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-500 transition-colors"
+              >
+                Restore
+              </button>
+              <button
+                onClick={cancelImport}
+                className="btn-press flex-1 py-2 rounded-lg text-xs font-medium bg-neutral-800 text-neutral-400 hover:text-neutral-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          {/* Export */}
+          <button
+            onClick={handleExport}
+            className="btn-press flex-1 py-2.5 rounded-xl text-xs font-medium border border-[#222] text-neutral-400 hover:text-green-400 hover:border-green-500/20 transition-all flex items-center justify-center gap-1.5"
+          >
+            <Download size={13} />
+            Export Backup
+          </button>
+
+          {/* Import */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-press flex-1 py-2.5 rounded-xl text-xs font-medium border border-[#222] text-neutral-400 hover:text-blue-400 hover:border-blue-500/20 transition-all flex items-center justify-center gap-1.5"
+          >
+            <Upload size={13} />
+            Import Backup
+          </button>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+      </div>
+
       {/* Data */}
       <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-4 mb-4 card-hover">
         <div className="flex items-center gap-2 mb-4">
-          <Shield size={14} className="text-green-500" />
-          <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Data</h2>
+          <Trash2 size={14} className="text-neutral-500" />
+          <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Danger Zone</h2>
         </div>
         <p className="text-[11px] text-neutral-600 mb-3">
-          All data is stored locally on your device. No data is sent to any server.
+          This will permanently delete all your data. Export a backup first if needed.
         </p>
         <button
           onClick={handleReset}
@@ -169,7 +317,7 @@ export default function Settings() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-400">Version</span>
-            <span className="text-xs text-neutral-600">1.0.0</span>
+            <span className="text-xs text-neutral-600">1.1.0</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-400">Storage</span>
@@ -178,7 +326,7 @@ export default function Settings() {
         </div>
         <div className="mt-3 pt-3 border-t border-[#1a1a1a] text-center">
           <p className="text-[10px] text-neutral-700 flex items-center justify-center gap-1">
-            Made with <Heart size={8} className="text-red-500" /> for discipline & consistency
+            Made with <Heart size={10} className="text-red-500" /> for discipline & consistency
           </p>
         </div>
       </div>
