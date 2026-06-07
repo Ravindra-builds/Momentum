@@ -16,20 +16,18 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [
-      ],
+      // This is critical for offline: it inlines the registration script
+      injectRegister: 'inline',
       manifest: {
-        name: "Momentum — Habit & Study Tracker",
+        name: "Momentum",
         short_name: "Momentum",
-        description:
-          "Premium minimal consistency tracker for habits, study hours, and discipline.",
+        description: "Track consistency, not perfection.",
         theme_color: "#050505",
         background_color: "#050505",
         display: "standalone",
         orientation: "portrait",
-        scope: "/",
         start_url: "/",
-        categories: ["productivity", "lifestyle", "education"],
+        scope: "/",
         icons: [
           {
             src: "icons/icon-192x192.png",
@@ -50,57 +48,14 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Precache everything including webmanifest
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webmanifest}"],
-
-        // When user navigates to any URL offline, serve index.html from cache
-        navigateFallback: "index.html",
-        navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js/],
-        
-        maximumFileSizeToCacheInBytes: 5000000,
-        
-        // Activate new SW immediately without waiting
-        skipWaiting: true,
-        clientsClaim: true,
-
-        // Cleanup old caches
+        // Since we use singleFile, we ONLY want to cache index.html and manifest
+        // The icons are already automatically included because they are in the manifest
+        globPatterns: ["index.html", "manifest.webmanifest"],
+        navigateFallback: "/index.html",
         cleanupOutdatedCaches: true,
-
-        runtimeCaching: [
-          // Google Fonts CSS
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "gstatic-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-        ],
-      },
-      devOptions: {
-        enabled: false,
+        clientsClaim: true,
+        skipWaiting: true,
+        directoryIndex: 'index.html',
       },
     }),
     // MUST be last — inlines all JS/CSS into the HTML so the app loads standalone

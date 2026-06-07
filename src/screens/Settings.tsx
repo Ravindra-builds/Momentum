@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { ArrowLeft, Bell, User, Trash2, Shield, Heart, Info, Download, Upload, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Bell, User, Trash2, Shield, Heart, Info, Download, Upload, AlertCircle,BookOpen } from 'lucide-react';
 import { useApp } from '../hooks/useAppData';
 import { storage } from '../services/storage';
+
 
 export default function Settings() {
   const { settings, updateSettings, setScreen } = useApp();
@@ -38,27 +39,37 @@ export default function Settings() {
   };
 
   const sendTestNotification = () => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const messages = [
-        "Protect your streak 🔥",
-        "One more green day.",
-        "Log today before sleeping.",
-        "Consistency beats intensity.",
-        "Show up every day. 💪",
-      ];
-      const msg = messages[Math.floor(Math.random() * messages.length)];
-      try {
-        new Notification('Momentum', {
-          body: msg,
-          icon: './icons/icon-192x192.png',
-          badge: './icons/icon-192x192.png',
-          tag: 'momentum-test',
-        });
-      } catch {
-        alert('Notification failed. Your browser may not support this feature.');
-      }
-    }
-  };
+  if (!('Notification' in window)) {
+    alert('Notifications are not supported in this browser.');
+    return;
+  }
+
+  if (Notification.permission !== 'granted') {
+    alert('Please allow notifications first.');
+    return;
+  }
+
+  const messages = [
+    "Protect your streak 🔥",
+    "One more green day.",
+    "Log today before sleeping.",
+    "Consistency beats intensity.",
+    "Show up every day. 💪",
+  ];
+
+  const msg = messages[Math.floor(Math.random() * messages.length)];
+
+  try {
+    new Notification('Momentum', {
+      body: msg,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      tag: 'momentum-test',
+    });
+  } catch {
+    alert('Notification failed. Your browser may not support this feature.');
+  }
+};
 
   // ── Backup Export ──
   const handleExport = () => {
@@ -307,7 +318,27 @@ export default function Settings() {
           </span>
         </button>
       </div>
-
+      
+  {/* Guide */}
+      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-4 mb-4 card-hover">
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen size={14} className="text-green-500" />
+          <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Guide</h2>
+        </div>
+        <p className="text-[11px] text-neutral-600 mb-3">
+          New here? Learn how every feature works with a visual walkthrough.
+        </p>
+        <button
+          onClick={() => {
+            const nav = (window as unknown as Record<string, ((s: string) => void) | undefined>).__navigateTo;
+            if (nav) nav('guide'); else setScreen('guide');
+          }}
+          className="btn-press w-full py-2.5 rounded-xl text-xs font-medium border border-green-500/20 text-green-400 hover:bg-green-500/5 transition-all flex items-center justify-center gap-1.5"
+        >
+          <BookOpen size={13} />
+          How It Works
+        </button>
+      </div>
       {/* About */}
       <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-4 card-hover">
         <div className="flex items-center gap-2 mb-3">
@@ -326,7 +357,7 @@ export default function Settings() {
         </div>
         <div className="mt-3 pt-3 border-t border-[#1a1a1a] text-center">
           <p className="text-[10px] text-neutral-700 flex items-center justify-center gap-1">
-            Made with <Heart size={10} className="text-red-500" /> for discipline & consistency
+            Made with <Heart size={10} className="text-red-500" />by <b>Ravindra</b> for discipline & consistency
           </p>
         </div>
       </div>

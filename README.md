@@ -306,6 +306,17 @@ All data is stored under these exact keys in localStorage:
 
 ---
 
+## 🧭 Guide — How It Works
+
+New to Momentum? The built-in **Guide** provides a short, visual walkthrough of every core feature so you can get started quickly.
+
+- **Where to open it:** Tap the book icon in the top-right of the Dashboard, or go to **Settings → Guide → How It Works**.
+- **What it covers:** Study hour logging, streaks, heatmaps (study/todos/per-habit), the todo system (today/tomorrow), habit tracking (good/bad/private), stats, daily reminders, backup & restore, and how to install the PWA.
+- **How to use it:** Open the Guide, scan the illustrated sections, follow the numbered steps in each card, then tap **Start Tracking →** to return to the Dashboard and begin.
+
+The Guide is ideal for first-time users and anyone who wants a quick refresher on how features behave and where to find them in the app.
+
+
 ## 🔐 Privacy & Security
 
 - ✅ **100% offline** — no backend, no API calls, no data leaves your device

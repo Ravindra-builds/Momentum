@@ -40,7 +40,7 @@ export interface DayActivity {
   value: number;
 }
 
-export type Screen = 'dashboard' | 'habits' | 'todos' | 'heatmaps' | 'stats' | 'settings';
+export type Screen = 'dashboard' | 'habits' | 'todos' | 'heatmaps' | 'stats' | 'settings' | 'guide';
 
 /**
  * Persistent record: date → count of completed todos.

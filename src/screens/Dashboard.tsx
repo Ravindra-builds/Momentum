@@ -1,7 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { Settings, Flame, Trophy, Sparkles, Clock, RotateCcw } from 'lucide-react';
-import { useApp } from '../hooks/useAppData';
-import { getToday, getGreeting, formatFullDate, getLast30Days } from '../utils/date';
+import { useState, useRef, useEffect } from "react";
+import {
+  Settings,
+  Flame,
+  Trophy,
+  Sparkles,
+  Clock,
+  RotateCcw,
+  BookOpen,
+} from "lucide-react";
+import { useApp } from "../hooks/useAppData";
+import {
+  getToday,
+  getGreeting,
+  formatFullDate,
+  getLast30Days,
+} from "../utils/date";
 
 const QUICK_HOURS = [0.5, 1, 2, 3, 4, 5, 6];
 
@@ -18,8 +31,17 @@ const QUOTES = [
 
 export default function Dashboard() {
   const {
-    settings, studyLogs, getStudyHoursForDate, getStudyStreak, addStudyHours, removeStudyLog,
-    getStudyActivityMap, setScreen, addToast, toasts, dismissToast,
+    settings,
+    studyLogs,
+    getStudyHoursForDate,
+    getStudyStreak,
+    addStudyHours,
+    removeStudyLog,
+    getStudyActivityMap,
+    setScreen,
+    addToast,
+    toasts,
+    dismissToast,
   } = useApp();
 
   const today = getToday();
@@ -29,7 +51,9 @@ export default function Dashboard() {
   const last30 = getLast30Days();
 
   const [animatingHours, setAnimatingHours] = useState(false);
-  const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  const [quote] = useState(
+    () => QUOTES[Math.floor(Math.random() * QUOTES.length)],
+  );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const miniHeatmapRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +64,9 @@ export default function Dashboard() {
     }
   }, []);
 
-  const todayLogIds = studyLogs.filter(l => l.date === today).map(l => l.id);
+  const todayLogIds = studyLogs
+    .filter((l) => l.date === today)
+    .map((l) => l.id);
 
   const handleQuickLog = (hours: number) => {
     const id = addStudyHours(hours);
@@ -50,10 +76,10 @@ export default function Dashboard() {
 
     const undoFn = () => {
       removeStudyLog(id);
-      addToast('Undone');
+      addToast("Undone");
     };
 
-    addToast(`+${hours}h logged`, { label: 'Undo', fn: undoFn });
+    addToast(`+${hours}h logged`, { label: "Undo", fn: undoFn });
   };
 
   const handleReset = () => {
@@ -62,11 +88,11 @@ export default function Dashboard() {
       setTimeout(() => setShowResetConfirm(false), 4000);
       return;
     }
-    todayLogIds.forEach(id => removeStudyLog(id));
+    todayLogIds.forEach((id) => removeStudyLog(id));
     setShowResetConfirm(false);
     setAnimatingHours(true);
     setTimeout(() => setAnimatingHours(false), 400);
-    addToast('Study hours reset');
+    addToast("Study hours reset");
   };
 
   const activeToast = toasts.length > 0 ? toasts[toasts.length - 1] : null;
@@ -83,23 +109,60 @@ export default function Dashboard() {
             Momentum
           </h1>
         </div>
-        <button
-          onClick={() => {
-            const nav = (window as unknown as Record<string, ((s: string) => void) | undefined>).__navigateTo;
-            if (nav) nav('settings'); else setScreen('settings');
-          }}
-          className="btn-press p-2.5 rounded-xl text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-all"
-        >
-          <Settings size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              const nav = (
+                window as unknown as Record<
+                  string,
+                  ((s: string) => void) | undefined
+                >
+              ).__navigateTo;
+              if (nav) nav("guide");
+              else setScreen("guide");
+            }}
+            className="btn-press p-2.5 rounded-xl text-neutral-500 hover:text-green-400 hover:bg-green-500/5 transition-all"
+            title="How It Works"
+          >
+            <BookOpen size={18} />
+          </button>
+          <button
+            onClick={() => {
+              const nav = (
+                window as unknown as Record<
+                  string,
+                  ((s: string) => void) | undefined
+                >
+              ).__navigateTo;
+              if (nav) nav("settings");
+              else setScreen("settings");
+            }}
+            className="btn-press p-2.5 rounded-xl text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-all"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
+      </div>
+      {/* Tagline */}
+      <div className="mb-6 -mt-2">
+        <p className="text-[13px] font-medium tracking-wide">
+          <span className="text-neutral-500">Track </span>
+          <span className="text-green-400 font-semibold">consistency</span>
+          <span className="text-neutral-600">, not </span>
+          <span className="text-neutral-400 italic">perfection</span>
+          <span className="text-neutral-700">.</span>
+        </p>
       </div>
 
       {/* Greeting */}
       <div className="mb-6">
         <p className="text-neutral-300 text-base font-medium">
-          {getGreeting()}{settings.userName ? `, ${settings.userName}` : ''} 👋
+          {getGreeting()}
+          {settings.userName ? `, ${settings.userName}` : ""} 👋
         </p>
-        <p className="text-neutral-500 text-xs mt-0.5">{formatFullDate(today)}</p>
+        <p className="text-neutral-500 text-xs mt-0.5">
+          {formatFullDate(today)}
+        </p>
       </div>
 
       {/* Main Study Card */}
@@ -111,14 +174,25 @@ export default function Dashboard() {
           {/* Streak row */}
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-1.5">
-              <Flame size={16} className={currentStreak > 0 ? 'text-orange-500 animate-streak-pulse' : 'text-neutral-700'} />
-              <span className="text-sm font-semibold text-neutral-200">{currentStreak}</span>
+              <Flame
+                size={16}
+                className={
+                  currentStreak > 0
+                    ? "text-orange-500 animate-streak-pulse"
+                    : "text-neutral-700"
+                }
+              />
+              <span className="text-sm font-semibold text-neutral-200">
+                {currentStreak}
+              </span>
               <span className="text-xs text-neutral-600">day streak</span>
             </div>
             <div className="w-px h-3 bg-neutral-800" />
             <div className="flex items-center gap-1.5">
               <Trophy size={14} className="text-yellow-600" />
-              <span className="text-sm font-semibold text-neutral-200">{longestStreak}</span>
+              <span className="text-sm font-semibold text-neutral-200">
+                {longestStreak}
+              </span>
               <span className="text-xs text-neutral-600">best</span>
             </div>
           </div>
@@ -129,12 +203,14 @@ export default function Dashboard() {
               <div className="flex items-end gap-2 mb-1">
                 <span
                   className={`text-5xl font-extrabold text-neutral-50 tracking-tight smooth-number ${
-                    animatingHours ? 'animate-number-pop' : ''
+                    animatingHours ? "animate-number-pop" : ""
                   }`}
                 >
                   {todayHours}
                 </span>
-                <span className="text-lg text-neutral-500 font-medium pb-1.5">hours</span>
+                <span className="text-lg text-neutral-500 font-medium pb-1.5">
+                  hours
+                </span>
               </div>
               <p className="text-xs text-neutral-600">studied today</p>
             </div>
@@ -145,12 +221,12 @@ export default function Dashboard() {
                 onClick={handleReset}
                 className={`btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   showResetConfirm
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                    : 'bg-neutral-800/50 text-neutral-500 border border-transparent hover:text-neutral-400 hover:border-neutral-700'
+                    ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                    : "bg-neutral-800/50 text-neutral-500 border border-transparent hover:text-neutral-400 hover:border-neutral-700"
                 }`}
               >
                 <RotateCcw size={12} />
-                {showResetConfirm ? 'Confirm?' : 'Reset'}
+                {showResetConfirm ? "Confirm?" : "Reset"}
               </button>
             )}
           </div>
@@ -164,7 +240,7 @@ export default function Dashboard() {
           Quick Log
         </h2>
         <div className="grid grid-cols-4 gap-2 stagger-children">
-          {QUICK_HOURS.map(h => (
+          {QUICK_HOURS.map((h) => (
             <button
               key={h}
               onClick={() => handleQuickLog(h)}
@@ -183,12 +259,30 @@ export default function Dashboard() {
         <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
           Last 30 Days
         </h2>
-        <div ref={miniHeatmapRef} className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-3 overflow-x-auto heatmap-scroll">
+        <div
+          ref={miniHeatmapRef}
+          className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-3 overflow-x-auto heatmap-scroll"
+        >
           <div className="flex gap-[3px]">
-            {last30.map(date => {
+            {last30.map((date) => {
               const hours = activityMap[date] || 0;
-              const intensity = hours === 0 ? 0 : hours <= 1 ? 1 : hours <= 3 ? 2 : hours <= 5 ? 3 : 4;
-              const colors = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+              const intensity =
+                hours === 0
+                  ? 0
+                  : hours <= 1
+                    ? 1
+                    : hours <= 3
+                      ? 2
+                      : hours <= 5
+                        ? 3
+                        : 4;
+              const colors = [
+                "#161b22",
+                "#0e4429",
+                "#006d32",
+                "#26a641",
+                "#39d353",
+              ];
               const isToday = date === today;
               return (
                 <div
@@ -223,7 +317,9 @@ export default function Dashboard() {
           className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 animate-toast-in"
         >
           <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 shadow-2xl">
-            <span className="text-sm text-neutral-200 font-medium">{activeToast.message}</span>
+            <span className="text-sm text-neutral-200 font-medium">
+              {activeToast.message}
+            </span>
             {activeToast.action && (
               <button
                 onClick={() => {

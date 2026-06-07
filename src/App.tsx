@@ -7,6 +7,7 @@ import Todos from './screens/Todos';
 import Heatmaps from './screens/Heatmaps';
 import Stats from './screens/Stats';
 import Settings from './screens/Settings';
+import Guide from './screens/Guide';
 import type { Screen, TabScreen } from './types';
 
 // Ordered tab screens for swipe direction calculation
@@ -19,6 +20,7 @@ const SCREEN_MAP: Record<Screen, React.FC> = {
   heatmaps: Heatmaps,
   stats: Stats,
   settings: Settings,
+   guide: Guide,
 };
 
 type SlideDir = 'left' | 'right' | 'fade';
@@ -123,7 +125,7 @@ function AppContent() {
 
   const onTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!isSwiping.current) return;
-    if (screen === 'settings') return; // no swipe on settings
+    if (screen === 'settings' || screen === 'guide') return;
 
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const threshold = 60; // minimum swipe distance
@@ -160,7 +162,7 @@ function AppContent() {
           <ScreenComponent />
         </div>
       </main>
-      {screen !== 'settings' && <BottomNav />}
+      {screen !== 'settings' && screen !== 'guide' && <BottomNav />} 
     </div>
   );
 }
